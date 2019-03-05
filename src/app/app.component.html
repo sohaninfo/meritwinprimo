@@ -1,6 +1,41 @@
-<p-menubar [model]="items">
+<div class="layout-wrapper">
+    <div id="layout-topbar">
+        <a href="#" class="logo" [routerLink]="['/']">
+            <span>Meritwin Primo</span>
+        </a>
+        <div class="topbar-menu">
+            <a href="#" class="logo" [routerLink]="['/home']">
+                <span>Home</span>
+            </a>
+            <a href="#" class="logo" [routerLink]="['/panel']">
+                <span>Panel</span>
+            </a>
+        </div>
+
+    </div>
+    <div id="layout-sidebar" [ngClass]="{'active': menuActive}">
+        <div class="layout-menu">
+            <a id="d3viz" #d3vizmenu [class.active-menuitem]="d3vizmenu.id == activeMenuId" (click)="activeMenuId = (activeMenuId === d3vizmenu.id ? null : d3vizmenu.id)">
+                <span>D3 viz</span>
+            </a>
+
+            <div [ngClass]="{'submenushow': (d3vizmenu.id == activeMenuId), 'submenuhide': (d3vizmenu.id != activeMenuId)}">
+                <a [routerLink]="['/d3viz/path']" (click)="menuActive = false">Path</a>
+                <a [routerLink]="['/d3viz/tpe']" (click)="menuActive = false">Tpe</a>
+            </div>
+        </div>
+
+    </div>
+    <div id="layout-content">
+        <div>
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>
+
+<!--p-menubar [model]="items">
+
     <div>
         <input type="text" pInputText placeholder="Search">
     </div>
-</p-menubar>
-<router-outlet></router-outlet>
+</p-menubar-->

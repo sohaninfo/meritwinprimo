@@ -9,16 +9,26 @@ import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import {MenubarModule} from 'primeng/menubar';
 import {MenuItem} from 'primeng/api';
-
+import {PanelModule} from 'primeng/panel';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { AppRoutingModule } from './app-routing.module';
+import { HelloWorldDirective } from './directives/hello-world.directive';
+import { MsgComponent } from './components/msg/msg.component';
+import { PanelComponent } from './components/panel/panel.component';
+import { PathComponent } from './components/d3viz/path/path.component';
+import { TpeComponent } from './components/d3viz/tpe/tpe.component';
 
 @NgModule({
     declarations: [
         AppComponent,
-        HomeComponent
+        HomeComponent,
+        HelloWorldDirective,
+        MsgComponent,
+        PanelComponent,
+        PathComponent,
+        TpeComponent
     ],
     imports: [
         BrowserModule,
@@ -30,6 +40,7 @@ import { AppRoutingModule } from './app-routing.module';
         DialogModule,
         ButtonModule,
         AppRoutingModule,
+        PanelModule,
         MenubarModule,
     ],
     providers: [],

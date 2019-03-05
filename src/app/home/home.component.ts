@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import * as d3 from 'd3'
+import { MsgComponent } from '../components/msg/msg.component';
 
 @Component({
   selector: 'app-home',
@@ -12,4 +14,7 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngAfterContentInit() {
+    d3.select('p#p1').style('color', 'blue');
+    }
 }
