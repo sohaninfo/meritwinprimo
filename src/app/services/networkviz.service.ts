@@ -86,19 +86,17 @@ export class Domain {
         this.addTpe(domainId, slotNo, 'tpe9', 9, cX, 85);
         this.addTpe(domainId, slotNo, 'tpe10', 10, cX, 95);
         this.addTpe(domainId, slotNo, 'tpe11', 11, cX, 105);
+        this.addTpe(domainId, slotNo, 'tpe12', 12, cX, 115);
         }
 
   }
-  render(id) {
-        var w = this.w;
-        var h = this.h;
+  render(id, w, h) {
+        //var w = this.w;
+        //var h = this.h;
 
         var p = this.props;
-        var dId = id.replace(/^\#+|\#+$/g, '');
-        console.log('dId:', dId);
-
-        this.g = d3.select(id).append('svg').attr('width', w).attr('height', h).attr('viewBox', '0 0 130 130').append('g')
-        .attr('id', dId+'_tpes');
+        this.g = d3.select('#'+id).append('svg').attr('width', w).attr('height', h).attr('viewBox', '0 0 130 130').append('g')
+        .attr('id', id+'_tpes');
         var g = this.g;
         g.append('rect').attr('width', '100%').attr('height', '100%').style('stroke', p.stroke).style('fill', p.col1);
 
@@ -110,7 +108,29 @@ export class Domain {
         this.drawSlot('slot6', 6, 100, 0);
         this.drawSlot('slot7', 7, 120, 0);
 
-        this.fillTpe(dId);
+        this.fillTpe(id);
+  }
+
+  renderNodes(id) {
+        var w = this.w;
+        var h = this.h;
+
+        var g = d3.select('#'+id).append('svg')
+            .attr('width', w)
+            .attr('height', h).attr('viewBox', '0 0 100 210').append('g')
+
+        var node1Id = id+'_node1';
+        var node2Id = id+'_node2';
+        g.append('g')
+          .attr('id', node1Id)
+          .attr('transform', 'translate('+0+', '+0+')')
+
+        g.append('g')
+          .attr('id', node2Id)
+          .attr('transform', 'translate('+0+', '+110+')')
+
+        this.render(node1Id, 100, 100);
+        this.render(node2Id, 100, 100);
   }
 
 
@@ -173,9 +193,481 @@ export class NetworkvizService {
 
   }
 
-  genPathData(loc1, loc2) {
-    var pathData = 'M '
+  getPaths(inp) {
+    var r = [];
+    var l1 = inp.l1;
+    var l2 = inp.l2;
+    var e = inp.e;
+    var w = e.w;
+    var h = e.h;
+    console.log("w:", w);
+    console.log("h:", h);
 
+    var str = e.t1;
+    var nt1 = str.replace( /^\D+/g, '');
+    console.log("tpe 1:", nt1);
+    str = e.s1;
+    var ns1 = str.replace( /^\D+/g, '');
+    console.log("slot 1:", ns1);
+    var dis1 = (w*35/100)-(nt1*5)+(ns1*20);
+    var p1x = l1.x - (w*35/100)+(nt1*5)-(ns1*20);
+
+    str = e.t2;
+    var nt2 = str.replace( /^\D+/g, '');
+    console.log("tpe 2:", nt2);
+    str = e.s2;
+    var ns2 = str.replace( /^\D+/g, '');
+    console.log("slot 2:", ns2);
+    var dis2 = (w*35/100)-(nt2*5)+(ns2*20);
+    var p2x = l2.x - (w*35/100)+(nt2*5)-(ns2*20);
+
+    var srcX = p1x;
+    var srcY = l1.y;
+    var destX = p2x;
+    var destY = l2.y;
+    var lines = e.lines;
+
+    var leftYCrossing = (x, y) => {
+        var cross = [];
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.y1 < y && ln.y2 > y && ln.x1 < x && ln.x2 > destX) {
+                cross.push(ln);
+            }
+        }
+
+        return cross;
+    }
+
+    var rightYCrossing = (x, y) => {
+        var cross = [];
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.y1 < y && ln.y2 > y && ln.x1 > x && ln.x2 < destX) {
+                cross.push(ln);
+            }
+        }
+
+        return cross;
+    }
+
+    var upXCrossing = (x, y) => {
+        var cross = [];
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.x1 < x && ln.x2 > x && ln.y1 < y && ln.y2 > destY) {
+                cross.push(ln);
+            }
+        }
+
+        return cross;
+    }
+
+    var downXCrossing = (x, y) => {
+        var cross = [];
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.x1 < x && ln.x2 > x && ln.y1 > y && ln.y2 < destY) {
+                cross.push(ln);
+            }
+        }
+
+        return cross;
+    }
+
+    var maxXinCrossings = (x, y, crossings) => {
+        var sln = null;
+        if (crossings.length > 0) {
+            sln = crossings[0];
+            for(var i = 0; i < crossings.length; i++) {
+                var ln = crossings[i];
+                if (ln.x1  > sln.x1) sln = ln;
+            }
+        }
+
+        return sln;
+    }
+
+    var minXinCrossings = (x, y, crossings) => {
+        var sln = null;
+        if (crossings.length > 0) {
+            sln = crossings[0];
+            for(var i = 0; i < crossings.length; i++) {
+                var ln = crossings[i];
+                if (ln.x1  < sln.x1) sln = ln;
+            }
+        }
+
+        return sln;
+    }
+
+    var maxYinCrossings = (x, y, crossings) => {
+        var sln = null;
+        if (crossings.length > 0) {
+            sln = crossings[0];
+            for(var i = 0; i < crossings.length; i++) {
+                var ln = crossings[i];
+                if (ln.y1  > sln.y1) sln = ln;
+            }
+        }
+
+        return sln;
+    }
+
+    var minYinCrossings = (x, y, crossings) => {
+        var sln = null;
+        if (crossings.length > 0) {
+            sln = crossings[0];
+            for(var i = 0; i < crossings.length; i++) {
+                var ln = crossings[i];
+                if (ln.y1  < sln.y1) sln = ln;
+            }
+        }
+
+        return sln;
+    }
+
+    var  getMinY = (x, y) => {
+        var cross = [];
+        var my = destY;
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.x1 < x && ln.x2 > x && ln.y1 > y && ln.y2 < destY) {
+                cross.push(ln);
+            }
+        }
+
+        if (cross.length > 0) {
+            for(var i = 0; i < lines.length; i++) {
+                var ln = cross[i];
+                if(ln.y < my) my = ln.y
+            }
+
+        }
+
+        //What would be the next move
+        if (isRight(x, my)) {
+            //
+            var crossings = rightYCrossing(x, my);
+            var sln = minXinCrossings(x, my, crossings);
+            if (sln) {
+               var ny = sln.y1 < sln.y2 ? sln.y1 : sln.y2;
+               if (ny > y) my = ny-dis1;
+               else {
+                 ny = sln.y1 > sln.y2 ? sln.y1 : sln.y2;
+                 if (ny > y) my = ny+dis1;
+               }
+
+            }
+
+        } else if(isLeft(x, my)) {
+            //If left move, ensure there is no blocking on left side. If it is decreas/increase accordingly
+            var crossings = leftYCrossing(x, my);
+            var sln = maxXinCrossings(x, my, crossings);
+            if (sln) {
+               var ny = sln.y1 < sln.y2 ? sln.y1 : sln.y2;
+               if (ny > y) my = ny-dis1;
+               else {
+                 ny = sln.y1 > sln.y2 ? sln.y1 : sln.y2;
+                 if (ny > y) my = ny+dis1;
+               }
+            }
+        }
+
+        return my;
+    }
+
+    var  getMaxY = (x, y) => {
+        var cross = [];
+        var my = destY;
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.x1 < x && ln.x2 > x && ln.y1 > y && ln.y2 < destY) {
+                cross.push(ln);
+            }
+        }
+        if (cross.length > 0) {
+            for(var i = 0; i < lines.length; i++) {
+                var ln = cross[i];
+                if(ln.y > my) my = ln.y
+            }
+
+        }
+
+        //What would be the next move
+        if (isRight(x, my)) {
+            //
+            var crossings = rightYCrossing(x, my);
+            var sln = minXinCrossings(x, my, crossings);
+            if (sln) {
+               var ny = sln.y1 > sln.y2 ? sln.y1 : sln.y2;
+               if (ny > y) my = ny + dis1;
+               else {
+                 ny = sln.y1 < sln.y2 ? sln.y1 : sln.y2;
+                 if (ny > y) my = ny - dis1;
+               }
+            }
+
+        } else if(isLeft(x, my)) {
+            //If left move, ensure there is no blocking on left side. If it is decreas/increase accordingly
+            var crossings = leftYCrossing(x, my);
+            var sln = maxXinCrossings(x, my, crossings);
+            if (sln) {
+               var ny = sln.y1 > sln.y2 ? sln.y1 : sln.y2;
+               if (ny < y) my = ny+dis1;
+               else {
+                 ny = sln.y1 < sln.y2 ? sln.y1 : sln.y2;
+                 if (ny < y) my = ny-dis1;
+               }
+            }
+        }
+
+        return my;
+    }
+
+    var  getMinX = (x, y) => {
+        var cross = [];
+        var mx = destX;
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[0];
+            if(ln.y1 < y && ln.y2 > y && ln.x1 > x && ln.x2 < destX) {
+                cross.push(ln);
+            }
+        }
+        if (cross.length > 0) {
+            var ln = cross[0];
+            for(var i = 0; i < lines.length; i++) {
+                var ln = cross[i];
+                if(ln.x1 < mx) mx = ln.x1
+            }
+
+        }
+
+        //What would be the next move
+        if (isUp(mx, y)) {
+            //
+            var crossings = upXCrossing(mx, y);
+            var sln = maxYinCrossings(mx, y, crossings);
+            if (sln) {
+               var nx = sln.x1 < sln.x2 ? sln.x1 : sln.x2;
+               if (nx > x) mx = nx;
+               else {
+                 nx = sln.x1 > sln.x2 ? sln.x1 : sln.x2;
+                 if (nx > x) mx = nx;
+               }
+            }
+
+        } else if(isDown(mx, y)) {
+            var crossings = downXCrossing(mx, y);
+            var sln = minYinCrossings(mx, y, crossings);
+            if (sln) {
+               var nx = sln.x1 < sln.x2 ? sln.x1 : sln.x2;
+               if (nx > x) mx = nx;
+               else {
+                 nx = sln.x1 > sln.x2 ? sln.x1 : sln.x2;
+                 if (nx > x) mx = nx;
+               }
+            }
+        }
+
+        return mx;
+     }
+
+    var  getMaxX = (x, y) => {
+        var cross = [];
+        var mx = destX;
+
+        for(var i = 0; i < lines.length; i++) {
+            var ln = lines[i];
+            if(ln.y1 < y && ln.y2 > y && ln.x1 > x && ln.x2 < destX) {
+                cross.push(ln);
+            }
+        }
+        if (cross.length > 0) {
+            for(var i = 0; i < lines.length; i++) {
+                var ln = cross[i];
+                if(ln.x > mx) mx = ln.x
+            }
+
+        }
+
+        //What would be the next move
+        if (isUp(mx, y)) {
+            //
+            var crossings = upXCrossing(mx, y);
+            var sln = maxYinCrossings(mx, y, crossings);
+            if (sln) {
+               var nx = sln.x1 > sln.x2 ? sln.x1 : sln.x2;
+               if (nx > x) mx = nx;
+               else {
+                 nx = sln.x1 < sln.x2 ? sln.x1 : sln.x2;
+                 if (nx > x) mx = nx;
+               }
+            }
+
+        } else if(isDown(mx, y)) {
+            var crossings = downXCrossing(mx, y);
+            var sln = minYinCrossings(mx, y, crossings);
+            if (sln) {
+               var nx = sln.x1 > sln.x2 ? sln.x1 : sln.x2;
+               if (nx > x) mx = nx;
+               else {
+                 nx = sln.x1 < sln.x2 ? sln.x1 : sln.x2;
+                 if (nx > x) mx = nx;
+               }
+            }
+        }
+
+        return mx;
+     }
+
+    var isDown  = (x, y) => {
+        if (y < destY) return true;
+        return false;
+    }
+
+    var isUp  = (x, y) => {
+        if (y > destY) return true;
+        return false;
+    }
+
+    var isRight  = (x, y) => {
+        if (x < destX) return true;
+        return false;
+    }
+
+    var isLeft  = (x, y) => {
+        if (x > destX) return true;
+        return false;
+    }
+
+    var cx = srcX;
+    var cy = srcY;
+    var count = 0;
+    r.push([cx, cy]);
+    while(count < 50) {
+        if (cx == destX && cy == destY)break;
+        console.log("Count:", count);
+        count++;
+        console.log("cx:", cx, ", cy:", cy);
+        if(isDown(cx, cy)) {
+           //Move down
+            console.log("Moving down....");
+            cy = getMinY(cx, cy);
+            r.push([cx, cy]);
+        }else if(isUp(cx, cy) || (count == 1 && isRight(cx, cy)) || (count == 1 && isLeft(cx, cy))) {
+           //Move up
+            console.log("Moving up....");
+            cy = getMaxY(cx, cy);
+            r.push([cx, cy]);
+        }
+
+        if (cx == destX && cy == destY)break;
+        if(isRight(cx, cy)) {
+           //Move right
+            console.log("Moving right....");
+            cx = getMinX(cx, cy);
+            r.push([cx, cy]);
+        }else if(isLeft(cx, cy)) {
+           //Move left
+            console.log("Moving left....");
+            cx = getMaxX(cx, cy);
+            r.push([cx, cy]);
+        }
+
+    }
+
+    return r;
+  }
+
+  genPathData(inp) {
+    var l1 = inp.l1;
+    var l2 = inp.l2;
+     var e = inp.e;
+    var w = e.w;
+    var h = e.h;
+    console.log("w:", w);
+    console.log("h:", h);
+
+    var str = e.t1;
+    var nt1 = str.replace( /^\D+/g, '');
+    console.log("tpe 1:", nt1);
+
+    str = e.s1;
+    var ns1 = str.replace( /^\D+/g, '');
+    console.log("slot 1:", ns1);
+
+    var p1x = l1.x - (w*35/100)+(nt1*5)-(ns1*20);
+    console.log('p1x: ', p1x);
+
+    //var d = 'M'+loc.x+' '+loc.y+' C '+(loc.x - 80)+' '+loc.y+', '+(loc2.x-80)+' '+loc2.y+', '+loc2.x+' '+loc2.y;
+
+/*
+    var d = 'M'+l1.x+' '+l1.y
+    var x1 = p1x;
+    var y1 = l1.y;
+    d = d+'C'+l1.x+' '+l1.y+', '+l1.x+' '+l1.y+', '+(x1)+' '+l1.y;
+
+    var p2y = y1+(h*2) - (50);
+    console.log("p2y:", p2y);
+    var x2 = x1;
+    var y2 = p2y;
+    d = d + ' S'+x1+' '+y1+', '+x2+' '+y2
+
+    var x3 = l2.x;
+    var y3 = l2.y
+    d = d + ' S'+x2+' '+y2+', '+x3+' '+y3
+*/
+    var d = 'M'+l1.x+' '+l1.y
+    var paths = this.getPaths(inp);
+    if (paths.length > 0 ){
+        d = d+'C '+l1.x+' '+l1.y+', '+paths[0][0]+' '+paths[0][1]+', '+paths[0][0]+' '+paths[0][1];
+        for (var i = 0; i < paths.length; i++) {
+          d = d+'S '+paths[i][0]+' '+paths[i][1]+', '+paths[i][0]+' '+paths[i][1];
+        }
+        d = d+'S '+l2.x+' '+l2.y+', '+l2.x+' '+l2.y;
+    } else {
+        d = d+'C '+l1.x+' '+l1.y+', '+l2.x+' '+l2.y+', '+l2.x+' '+l2.y;
+    }
+    console.log("paths:", paths);
+
+    console.log("d:", d);
+    return d;
+
+  }
+
+  link(elem, l) {
+    console.log('Links.............');
+    var svg = d3.select(elem).select('svg#top');
+
+    var id1 = '#'+l.d1;
+    var id2 =  id1+'_'+l.n1;
+    var id3 =  id2+'_tpes';
+    console.log('Ids:', id1, id2, id3);
+    var g2 = d3.select(id1).select(id2).select(id3).select('#'+l.s1).select('#'+l.t1).select('circle');
+    var loc1 = this.getLocation(svg, g2);
+
+    console.log('x', g2.attr('x'));
+
+    id1 = '#'+l.d2;
+    id2 =  id1+'_'+l.n1;
+    id3 =  id2+'_tpes';
+    console.log('tpe2 :Ids:', id1, id2, id3);
+    var tpe2 = d3.select(id1).select(id2).select(id3).select('#'+l.s2).select('#'+l.t2).select('circle');
+    var loc2 = this.getLocation(svg, tpe2);
+
+
+    var  inp = {"e":l, "l1":loc1, "l2":loc2}
+    svg.select('g#links').append('path')
+    .attr('d', this.genPathData(inp))
+    .attr('fill', 'none')
+     .attr("stroke-width", 1)
+    .attr('stroke', 'blue')
   }
 
   createLink(elem, l) {

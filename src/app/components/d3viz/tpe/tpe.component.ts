@@ -8,8 +8,20 @@ import { NetworkvizService } from '../../../services/networkviz.service'
   styleUrls: ['./tpe.component.css']
 })
 export class TpeComponent implements OnInit {
+  outerWidth:number;
+  outerHeight:number;
+  width:number;
+  height:number;
 
-  constructor(private ns:NetworkvizService) { }
+  constructor(private ns:NetworkvizService) {
+    //this.outerWidth = 2200;
+    this.outerWidth = 1200;
+    this.outerHeight = 2000;
+    this.width = 100;
+    this.height = 210;
+    //this.width = 200;
+    //this.height = 420;
+  }
 
   ngOnInit() {
     this.draw('#tpe')
@@ -48,82 +60,138 @@ export class TpeComponent implements OnInit {
 
   draw(elem) {
        var margin = {"top": 50, "right": 50, "bottom": 50, "left": 50}
+       var w = this.width;
+       var h = this.height;
 
-       var width = 1100, height = 1100;
-       var svg = d3.select(elem).append('svg').attr('id', 'top').attr('width', width).attr('height', height);
-
-       var g = svg.append('g')
-                .attr('id', 'd1')
-                .attr('transform', 'translate('+450+', '+50+')')
-
-        svg.append('g')
-                .attr('id', 'd1sim2')
-                .attr('transform', 'translate('+450+', '+200+')')
-
-       var g2 = svg.append('g')
-                .attr('id', 'd2')
-                .attr('transform', 'translate('+800+', '+300+')')
-        svg.append('g')
-                .attr('id', 'd2sim2')
-                .attr('transform', 'translate('+800+', '+600+')')
-
-        svg.append('g')
-                .attr('id', 'd3sim1')
-                .attr('transform', 'translate('+450+', '+600+')')
-
-        svg.append('g')
-                .attr('id', 'd3sim2')
-                .attr('transform', 'translate('+450+', '+800+')')
+       var lines = [];
+       var lc = (x1, y1) => {
+          var o1 =  {"x1": x1, "y1": y1, "x2": x1+w, "y2": y1}
+          var o2 =  {"x1": x1, "y1": y1, "x2": x1, "y2": y1+h}
+          var o3 =  {"x1": x1+w, "y1": y1, "x2": x1+w, "y2": y1+h}
+          var o4 =  {"x1": x1, "y1": y1+h, "x2": x1+w, "y2": y1+h}
+          lines.push(o1);
+          lines.push(o2);
+          lines.push(o3);
+          lines.push(o4);
+       }
 
 
-        svg.append('g')
-                .attr('id', 'd4')
-                .attr('transform', 'translate('+100+', '+300+')')
+      // var width = 1100, height = 1100;
+       var dis = (this.height - (this.width*2))*6;
+       console.log("distance", dis);
 
-        svg.append('g')
-                .attr('id', 'd4sim2')
-                .attr('transform', 'translate('+100+', '+500+')')
+
+       var svg = d3.select(elem).append('svg').attr('id', 'top').attr('width', this.outerWidth).attr('height', this.outerHeight);
+
+
+       // SimA - node 1
+       var s = (this.outerWidth/2)-(this.width + (dis/2));
+       svg.append('g')
+              .attr('id', 'd1node1')
+              .attr('transform', 'translate('+s+', '+margin.top+')')
+
+      lc(s, margin.top);
+
+       // SimA - node 2
+       var s2 = s + this.width + dis;
+       svg.append('g')
+                .attr('id', 'd1node2')
+                .attr('transform', 'translate('+(s2)+', '+margin.top+')')
+      lc(s2, margin.top);
+
+
+       // SimB -node 1
+       var s3 = s2+this.width+(dis*2);
+       var sBy = this.height+margin.top+dis;
+       svg.append('g')
+                .attr('id', 'd2node1')
+                .attr('transform', 'translate('+(s3)+', '+(sBy)+')')
+      lc(s3, sBy);
+
+       // SimB -node 2
+       var s3 = s2+this.width+(dis*2);
+       var sBx = s3+w+dis;
+       var sBy = this.height+margin.top+dis;
+
+       svg.append('g')
+                .attr('id', 'd2node2')
+                .attr('transform', 'translate('+(sBx)+', '+sBy+')')
+      lc(sBx, sBy);
+
+       // SimC -node 1
+       var s4y = margin.top + (this.height*2) + (dis*2);
+       svg.append('g')
+                .attr('id', 'd3node1')
+                .attr('transform', 'translate('+(s)+', '+(s4y)+')')
+      lc(s, s4y);
+
+       // SimC -node 2
+       var sCx = s+this.width+dis;
+       svg.append('g')
+                .attr('id', 'd3node2')
+                .attr('transform', 'translate('+(sCx)+', '+(s4y)+')')
+      lc(sCx, s4y);
+
+       // SimD -node 1
+       var sDx = s  - (this.width*2) - (dis*2) - dis;
+       svg.append('g')
+                .attr('id', 'd4node1')
+                .attr('transform', 'translate('+(sDx)+', '+(sBy)+')')
+      lc(sDx, sBy);
+
+       var sDx2 = sDx + this.width + dis;
+       svg.append('g')
+                .attr('id', 'd4node2')
+                .attr('transform', 'translate('+(sDx2)+', '+(sBy)+')')
+      lc(sDx2, sBy);
+
 
 
        var g3 = svg.append('g')
                 .attr('id', 'links');
 
 
-        var d = this.ns.createDomain(100, 100);
-        d.render('#d1')
-        var d1sim2 = this.ns.createDomain(100, 100);
-        d1sim2.render('#d1sim2')
+        var d = this.ns.createDomain(this.width, this.height);
+        d.renderNodes('d1node1')
 
-        var d2 = this.ns.createDomain(100, 100);
-        d2.render('#d2')
-        var d2sim2 = this.ns.createDomain(100, 100);
-        d1sim2.render('#d2sim2')
+        var d2node2 = this.ns.createDomain(this.width, this.height);
+        d2node2.renderNodes('d1node2')
 
-        var d3sim1 = this.ns.createDomain(100, 100);
-        d3sim1.render('#d3sim1')
+        var d2 = this.ns.createDomain(this.width, this.height);
+        d2.renderNodes('d2node1')
+        var d2node1 = this.ns.createDomain(this.width, this.height);
+        d2node1.renderNodes('d2node2')
 
-        var d3sim2 = this.ns.createDomain(100, 100);
-        d3sim2.render('#d3sim2')
+        var d3node1 = this.ns.createDomain(this.width, this.height);
+        d3node1.renderNodes('d3node1')
+        var d3node2 = this.ns.createDomain(this.width, this.height);
+        d3node2.renderNodes('d3node2')
 
-        var dom4 = this.ns.createDomain(100, 100);
-        dom4.render('#d4')
-
-        var d4sim2 = this.ns.createDomain(100, 100);
-        d4sim2.render('#d4sim2')
+        var d4node1 = this.ns.createDomain(this.width, this.height);
+        d4node1.renderNodes('d4node1')
+        var d4node2 = this.ns.createDomain(this.width, this.height);
+        d4node2.renderNodes('d4node2')
 
         var l = {
-            "d1": "d3sim1",
+            "d1": "d1node1",
+            "n1": "node1",
             "s1": "slot1",
             "t1": "tpe1",
-            "d2": "d2",
+            "d2": "d2node1",
+            "n2": "node2",
             "s2": "slot1",
-            "t2": "tpe1"
+            "t2": "tpe1",
+            "w": this.width,
+            "h": this.height,
+            "lines": lines
         }
         for (var i = 1; i <= 10; i++){
             l.t1 = 'tpe'+i
             l.t2 = 'tpe'+i
-            this.ns.createRight1(elem, l);
+            this.ns.link(elem, l);
         }
+console.log(lines);
+/*
         l.d1 = 'd1'
         l.d2 = 'd3sim1'
         for (var i = 1; i <= 10; i++){
@@ -142,10 +210,11 @@ export class TpeComponent implements OnInit {
 
         l.d1 = 'd1'
         l.d2 = 'd2'
+        l.s1 = 'slot1'
         for (var i = 1; i <= 10; i++){
             l.t1 = 'tpe'+i
             l.t2 = 'tpe'+i
-            this.ns.createRightBottomLink(elem, l);
+            this.ns.link(elem, l);
         }
 
         l.d1 = 'd4'
@@ -173,7 +242,7 @@ export class TpeComponent implements OnInit {
         //svg.append('line').attr('x1', c1['x1']+50).attr('y1', c1['y1']+50).attr('x2', c2['x1']+600).attr('y2', c2['y1']+50).style('stroke', 'red').style('fill', 'blue');
         //svg.append('line').attr('x1', c1['x2']+50).attr('y1', c1['y2']+50).attr('x2', c2.x2+600).attr('y2', c2.y2+50).style('stroke', 'blue').style('fill', 'blue');
         //svg.append('line').attr('x1', c1.x3+50).attr('y1', c1.y3+50).attr('x2', c2.x3+600).attr('y2', c2.y3+50).style('stroke', 'blue').style('fill', 'blue');
-
+*/
 
   }
 

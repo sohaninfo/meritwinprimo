@@ -15,7 +15,8 @@
     </div>
     <div id="layout-sidebar" [ngClass]="{'active': menuActive}">
         <div class="layout-menu">
-            <a id="d3viz" #d3vizmenu [class.active-menuitem]="d3vizmenu.id == activeMenuId" (click)="activeMenuId = (activeMenuId === d3vizmenu.id ? null : d3vizmenu.id)">
+            <a id="d3viz" #d3vizmenu [class.active-menuitem]="d3vizmenu.id == activeMenuId"
+               (click)="activeMenuId = (activeMenuId === d3vizmenu.id ? null : d3vizmenu.id)">
                 <span>D3 viz</span>
             </a>
 
